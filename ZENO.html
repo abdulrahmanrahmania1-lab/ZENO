@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZENO">
+<title>ZENO — دستیار هوشمند</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --bg: #050508;
+  --text: #f0f0ff;
+  --text2: #8080aa;
+  --surface: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.08);
+}
+body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.bg-canvas { position:fixed; inset:0; z-index:0; overflow:hidden; }
+.orb { position:absolute; border-radius:50%; filter:blur(80px); opacity:0.15; }
+.orb1 { width:400px; height:400px; background:#7c3aed; top:-100px; right:-100px; animation:o1 8s infinite ease-in-out; }
+.orb2 { width:350px; height:350px; background:#2563eb; bottom:-80px; left:-80px; animation:o2 8s infinite ease-in-out 3s; }
+.orb3 { width:250px; height:250px; background:#db2777; top:40%; left:50%; transform:translate(-50%,-50%); animation:o1 6s infinite ease-in-out 1.5s; }
+@keyframes o1 { 0%,100%{transform:scale(1);opacity:0.15} 50%{transform:scale(1.2) translate(-20px,20px);opacity:0.22} }
+@keyframes o2 { 0%,100%{transform:scale(1);opacity:0.15} 50%{transform:scale(1.15) translate(20px,-20px);opacity:0.2} }
+.main { position:relative; z-index:1; display:flex; flex-direction:column; height:100dvh; }
+.header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 12px; }
+.logo { font-size:24px; font-weight:900; letter-spacing:5px; background:linear-gradient(135deg,#a78bfa,#60a5fa,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.api-btn { background:var(--surface); border:1px solid var(--border); color:var(--text2); padding:8px 14px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Vazirmatn',sans-serif; backdrop-filter:blur(10px); transition:all 0.3s; }
+.api-btn:hover { border-color:#7c3aed; color:#a78bfa; }
+.center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; gap:20px; }
+.orb-wrap { position:relative; width:180px; height:180px; display:flex; align-items:center; justify-content:center; }
+.ring { position:absolute; border-radius:50%; border:1px solid rgba(124,58,237,0.3); top:50%; left:50%; transform:translate(-50%,-50%); opacity:0; }
+.ring1 { width:100%; height:100%; }
+.ring2 { width:120%; height:120%; }
+.ring3 { width:145%; height:145%; }
+.orb-wrap.listening .ring { animation:rp 1.5s infinite; }
+.orb-wrap.listening .ring2 { animation-delay:0.3s; }
+.orb-wrap.listening .ring3 { animation-delay:0.6s; }
+.orb-wrap.speaking .ring { animation:rp 0.8s infinite; border-color:rgba(96,165,250,0.4); }
+.orb-wrap.speaking .ring2 { animation-delay:0.15s; }
+.orb-wrap.speaking .ring3 { animation-delay:0.3s; }
+@keyframes rp { 0%{opacity:0.7;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.35)} }
+.voice-btn { width:130px; height:130px; border-radius:50%; border:none; cursor:pointer; position:relative; z-index:2; background:conic-gradient(from 0deg,#7c3aed,#2563eb,#db2777,#7c3aed); padding:3px; box-shadow:0 0 50px rgba(124,58,237,0.4); transition:transform 0.2s; }
+.voice-btn:active { transform:scale(0.93); }
+.vbi { width:100%; height:100%; border-radius:50%; background:#09090f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+.mic { font-size:38px; transition:all 0.3s; filter:drop-shadow(0 0 12px rgba(167,139,250,0.8)); }
+.voice-btn.listening .mic { animation:mp 0.5s infinite alternate; filter:drop-shadow(0 0 16px rgba(244,114,182,0.9)); }
+@keyframes mp { from{transform:scale(1)} to{transform:scale(1.2)} }
+.vlabel { font-size:11px; color:var(--text2); letter-spacing:2px; }
+.waves { display:flex; align-items:center; gap:3px; height:28px; opacity:0; transition:opacity 0.3s; }
+.waves.active { opacity:1; }
+.wb { width:3px; border-radius:3px; background:linear-gradient(to top,#7c3aed,#f472b6); height:4px; animation:wv 0.8s infinite ease-in-out; }
+.waves.speaking .wb { background:linear-gradient(to top,#2563eb,#60a5fa); }
+.waves.listening .wb { background:linear-gradient(to top,#f472b6,#fb7185); }
+.wb:nth-child(1){animation-delay:0s} .wb:nth-child(2){animation-delay:0.1s} .wb:nth-child(3){animation-delay:0.2s} .wb:nth-child(4){animation-delay:0.3s} .wb:nth-child(5){animation-delay:0.2s} .wb:nth-child(6){animation-delay:0.1s} .wb:nth-child(7){animation-delay:0s}
+@keyframes wv { 0%,100%{height:4px} 50%{height:22px} }
+.status { font-size:14px; color:var(--text2); letter-spacing:1px; min-height:20px; transition:all 0.3s; }
+.status.on { color:#a78bfa; } .status.sp { color:#60a5fa; }
+.transcript { width:100%; max-width:380px; min-height:72px; max-height:130px; overflow-y:auto; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:14px 18px; backdrop-filter:blur(20px); font-size:14px; line-height:1.7; text-align:center; transition:all 0.3s; }
+.transcript::-webkit-scrollbar{display:none}
+.transcript.ut { border-color:rgba(244,114,182,0.3); color:#fce7f3; }
+.transcript.at { border-color:rgba(96,165,250,0.3); color:#dbeafe; }
+.ph { color:var(--text2); font-size:13px; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:380px; }
+.chip { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:7px 14px; font-size:12px; color:var(--text2); cursor:pointer; font-family:'Vazirmatn',sans-serif; backdrop-filter:blur(10px); transition:all 0.2s; white-space:nowrap; }
+.chip:active { border-color:#7c3aed; color:#a78bfa; background:rgba(124,58,237,0.1); }
+.bottom { padding:12px 18px 28px; display:flex; gap:10px; align-items:center; }
+.tiw { flex:1; display:flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:25px; padding:4px 6px 4px 16px; backdrop-filter:blur(20px); transition:border-color 0.3s; }
+.tiw:focus-within { border-color:rgba(124,58,237,0.5); }
+textarea { flex:1; background:none; border:none; outline:none; color:var(--text); font-size:14px; font-family:'Vazirmatn',sans-serif; resize:none; max-height:90px; min-height:34px; line-height:1.5; padding:7px 0; direction:rtl; }
+textarea::placeholder { color:var(--text2); }
+.sbtn { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#2563eb); border:none; color:white; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:0 4px 15px rgba(124,58,237,0.4); flex-shrink:0; }
+.sbtn:active { transform:scale(0.9); } .sbtn:disabled { opacity:0.3; }
+.modal { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(15px); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+.mcard { background:#0f0f1a; border:1px solid rgba(124,58,237,0.3); border-radius:28px; padding:30px 24px; width:100%; max-width:380px; box-shadow:0 0 60px rgba(124,58,237,0.2); }
+.mcard h2 { font-size:20px; text-align:center; margin-bottom:8px; background:linear-gradient(135deg,#a78bfa,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.mcard p { font-size:13px; color:var(--text2); text-align:center; margin-bottom:22px; line-height:1.7; }
+.mi { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:14px; color:var(--text); font-size:14px; font-family:monospace; margin-bottom:14px; outline:none; direction:ltr; transition:border-color 0.3s; }
+.mi:focus { border-color:rgba(124,58,237,0.6); }
+.mb { width:100%; background:linear-gradient(135deg,#7c3aed,#2563eb); border:none; border-radius:14px; padding:15px; color:white; font-size:15px; font-weight:700; font-family:'Vazirmatn',sans-serif; cursor:pointer; box-shadow:0 8px 25px rgba(124,58,237,0.4); }
+</style>
+</head>
+<body>
+<div class="bg-canvas">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="mcard">
+    <div style="font-size:38px;text-align:center;margin-bottom:10px">🔑</div>
+    <h2>ZENO را فعال کن</h2>
+    <p>API Key رایگان Gemini رو از<br><strong style="color:#a78bfa">aistudio.google.com</strong><br>بگیر و اینجا وارد کن</p>
+    <input type="password" class="mi" id="apiInput" placeholder="AIza..." />
+    <button class="mb" onclick="saveKey()">✨ شروع کن</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="header">
+    <div class="logo">ZENO</div>
+    <button class="api-btn" onclick="openModal()">⚙️</button>
+  </div>
+
+  <div class="center">
+    <div class="orb-wrap" id="ow">
+      <div class="ring ring1"></div>
+      <div class="ring ring2"></div>
+      <div class="ring ring3"></div>
+      <button class="voice-btn" id="vb" onclick="toggle()">
+        <div class="vbi">
+          <span class="mic" id="mic">🎙️</span>
+          <span class="vlabel" id="vlb">بگو</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="waves" id="waves">
+      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      <div class="wb"></div>
+    </div>
+
+    <div class="status" id="st">برای صحبت دکمه رو بفشار 👆</div>
+
+    <div class="transcript" id="tr">
+      <span class="ph">گفتگوی تو اینجا نمایش داده میشه ✨</span>
+    </div>
+
+    <div class="chips">
+      <div class="chip" onclick="go('درس امروزم رو آماده کن')">📚 درس امروز</div>
+      <div class="chip" onclick="go('ترجمه کن')">🌐 ترجمه</div>
+      <div class="chip" onclick="go('Bugün ders ver')">🎯 Ders</div>
+      <div class="chip" onclick="go('یه متن بنویس')">✍️ متن</div>
+      <div class="chip" onclick="go('سوال دارم')">❓ سوال</div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="tiw">
+      <textarea id="inp" placeholder="یا تایپ کن..." rows="1"
+        onkeydown="hk(event)" oninput="ar(this)"></textarea>
+    </div>
+    <button class="sbtn" id="sb" onclick="fromInput()">➤</button>
+  </div>
+</div>
+
+<script>
+let key = localStorage.getItem('zeno') || '';
+let hist = [], listening = false, speaking = false, busy = false, rec = null;
+const sy = window.speechSynthesis;
+
+const SYS = `تو ZENO هستی — دستیار هوشمند شخصی، حرفه‌ای، جذاب و پرانرژی.
+هم فارسی هم ترکی بلدی. به زبان کاربر جواب بده.
+جواب‌هات: کوتاه (۲-۳ جمله)، واضح، پرانرژی، با ایموجی.
+معلم خصوصی هستی: درس بده، توضیح بده، ترجمه کن، متن بنویس.`;
+
+if (key) document.getElementById('modal').style.display = 'none';
+
+function saveKey() {
+  const k = document.getElementById('apiInput').value.trim();
+  if (!k) return;
+  key = k; localStorage.setItem('zeno', k);
+  document.getElementById('modal').style.display = 'none';
+}
+function openModal() {
+  document.getElementById('apiInput').value = key;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function toggle() {
+  if (!key) { openModal(); return; }
+  if (speaking) { sy.cancel(); setSt('idle'); return; }
+  if (listening) { stopListen(); return; }
+  startListen();
+}
+
+function startListen() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { setTr('متأسفم، مرورگرت میکروفون پشتیبانی نمی‌کنه. از تایپ استفاده کن ⌨️', ''); return; }
+  rec = new SR();
+  rec.lang = 'fa-IR'; rec.interimResults = true; rec.continuous = false;
+  rec.onstart = () => { listening = true; setSt('listening'); setTr('🎙️ گوش میدم...', 'ut'); };
+  rec.onresult = e => {
+    let f = '', im = '';
+    for (let i = e.resultIndex; i < e.results.length; i++)
+      e.results[i].isFinal ? f += e.results[i][0].transcript : im += e.results[i][0].transcript;
+    setTr(f || im, 'ut');
+    if (f) { stopListen(); go(f); }
+  };
+  rec.onerror = rec.onend = () => stopListen();
+  rec.start();
+  document.getElementById('vb').classList.add('listening');
+  document.getElementById('ow').classList.add('listening');
+  const w = document.getElementById('waves');
+  w.classList.add('active','listening'); w.classList.remove('speaking');
+  document.getElementById('mic').textContent = '🔴';
+  document.getElementById('vlb').textContent = 'توقف';
+}
+
+function stopListen() {
+  listening = false;
+  try { rec?.stop(); } catch(e) {}
+  document.getElementById('vb').classList.remove('listening');
+  document.getElementById('ow').classList.remove('listening');
+  const w = document.getElementById('waves');
+  w.classList.remove('active','listening');
+  document.getElementById('mic').textContent = '🎙️';
+  document.getElementById('vlb').textContent = 'بگو';
+  setSt('idle');
+}
+
+function setSt(s) {
+  const el = document.getElementById('st');
+  el.className = 'status';
+  const map = { listening:['🎙️ گوش میدم...','on'], thinking:['🧠 دارم فکر می‌کنم...','on'], speaking:['🔊 دارم جواب میدم...','sp'], idle:['برای صحبت دکمه رو بفشار 👆',''] };
+  const [t, c] = map[s] || map.idle;
+  el.textContent = t; if (c) el.classList.add(c);
+  speaking = s === 'speaking';
+  const vb = document.getElementById('vb'), ow = document.getElementById('ow'), waves = document.getElementById('waves');
+  if (s === 'speaking') {
+    vb.classList.add('speaking'); ow.classList.add('speaking');
+    waves.classList.add('active','speaking'); waves.classList.remove('listening');
+    document.getElementById('mic').textContent = '🔊';
+    document.getElementById('vlb').textContent = 'توقف';
+  } else if (s !== 'listening') {
+    vb.classList.remove('speaking'); ow.classList.remove('speaking');
+    waves.classList.remove('active','speaking');
+    if (s === 'idle') { document.getElementById('mic').textContent = '🎙️'; document.getElementById('vlb').textContent = 'بگو'; }
+  }
+}
+
+function setTr(t, c) {
+  const el = document.getElementById('tr');
+  el.className = 'transcript ' + c;
+  el.textContent = t;
+}
+
+async function go(text) {
+  if (!text || busy) return;
+  if (!key) { openModal(); return; }
+  busy = true; document.getElementById('sb').disabled = true;
+  setSt('thinking'); setTr('💭 ' + text, 'ut');
+  hist.push({ role:'user', parts:[{text}] });
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system_instruction:{parts:[{text:SYS}]}, contents:hist })
+    });
+    const d = await r.json();
+    if (d.error) { setTr('❌ ' + d.error.message, ''); setSt('idle'); return; }
+    const rep = d.candidates?.[0]?.content?.parts?.[0]?.text || 'جواب نگرفتم';
+    hist.push({ role:'model', parts:[{text:rep}] });
+    if (hist.length > 16) hist = hist.slice(-16);
+    setTr(rep, 'at');
+    speak(rep);
+  } catch(e) { setTr('❌ اینترنت رو چک کن', ''); setSt('idle'); }
+  finally { busy = false; document.getElementById('sb').disabled = false; }
+}
+
+function speak(text) {
+  sy.cancel();
+  const clean = text.replace(/[\u{1F300}-\u{1FFFF}]/gu,'').replace(/[^\u0600-\u06FF\u0020-\u007E\u00A0-\u00FF\n]/g,'').trim();
+  const u = new SpeechSynthesisUtterance(clean);
+  const vs = sy.getVoices();
+  u.voice = vs.find(v=>v.lang.startsWith('fa')) || vs.find(v=>v.lang.startsWith('tr')) || vs.find(v=>v.lang.startsWith('ar')) || null;
+  u.rate = 0.92; u.pitch = 1.05;
+  u.onstart = () => setSt('speaking');
+  u.onend = u.onerror = () => setSt('idle');
+  sy.speak(u);
+}
+
+function fromInput() {
+  const inp = document.getElementById('inp');
+  const t = inp.value.trim(); if (!t) return;
+  inp.value = ''; inp.style.height = 'auto'; go(t);
+}
+function hk(e) { if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); fromInput(); } }
+function ar(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,90)+'px'; }
+if (sy) sy.onvoiceschanged = () => sy.getVoices();
+</script>
+</body>
+</html>
